@@ -43,6 +43,7 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     allowedHosts: [
+      "https://reactide-steel.vercel.app",
       "https://fe39-2409-4081-2b93-9e80-7892-cf44-e230-a589.ngrok-free.app"
     ],
     proxy: {
