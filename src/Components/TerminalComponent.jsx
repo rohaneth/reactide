@@ -67,7 +67,7 @@ const TerminalComponent = () => {
     resizeObserver.observe(containerRef.current);
 
     // WebSocket setup
-    const socket = new SockJS('https://efb2-152-57-216-166.ngrok-free.app/ws');
+    const socket = new SockJS('https://7e3b-2409-4081-1e-1c9c-7955-3e55-1d71-ed2.ngrok-free.app/ws');
     const client = Stomp.over(socket);
     stompRef.current = client;
     
