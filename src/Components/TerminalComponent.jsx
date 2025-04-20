@@ -1,9 +1,8 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
+import { Client } from '@stomp/stompjs'; // ✅ Native STOMP client
 import 'xterm/css/xterm.css';
-import SockJS from 'sockjs-client';
-import Stomp from 'stompjs';
 
 const TerminalComponent = () => {
   const containerRef = useRef(null);
@@ -16,9 +15,9 @@ const TerminalComponent = () => {
     const term = new Terminal({
       theme: { background: '#1e1e1e', foreground: '#d4d4d4' },
       cursorBlink: true,
-      rows: 10 // Set a reasonable default height
+      rows: 10
     });
-    
+
     const fitAddon = new FitAddon();
     termRef.current = term;
     fitRef.current = fitAddon;
@@ -26,21 +25,22 @@ const TerminalComponent = () => {
     term.loadAddon(fitAddon);
     term.open(containerRef.current);
 
-    // Initial fit
     requestAnimationFrame(() => {
       fitAddon.fit();
       term.writeln('Welcome to the Web Terminal ⌨️');
       term.write('> ');
     });
 
-    // Handle terminal input
     term.onKey(({ key, domEvent }) => {
       const printable = !domEvent.altKey && !domEvent.ctrlKey && !domEvent.metaKey;
 
       if (domEvent.key === 'Enter') {
         term.write('\r\n');
         if (stompRef.current?.connected && commandBuffer.trim()) {
-          stompRef.current.send('/app/terminal', {}, commandBuffer);
+          stompRef.current.publish({
+            destination: '/app/terminal',
+            body: commandBuffer
+          });
           commandBuffer = '';
         }
         term.write('> ');
@@ -55,36 +55,36 @@ const TerminalComponent = () => {
       }
     });
 
-    // Efficient resize handling
     const resizeObserver = new ResizeObserver(() => {
       requestAnimationFrame(() => {
-        if (fitRef.current) {
-          fitRef.current.fit();
-        }
+        fitRef.current?.fit();
       });
     });
-
     resizeObserver.observe(containerRef.current);
 
-    // WebSocket setup
-    const socket = new SockJS("https://7e3b-2409-4081-1e-1c9c-7955-3e55-1d71-ed2.ngrok-free.app/ws", null, {
-      transports: ['websocket', 'xhr-streaming', 'xhr-polling'],
-      withCredentials: true // 👈 Must be true if using cookies or secured origin
+    // ✅ Native WebSocket over STOMP (no SockJS)
+    const client = new Client({
+      brokerURL: 'wss://7e3b-2409-4081-1e-1c9c-7955-3e55-1d71-ed2.ngrok-free.app/ws',
+      connectHeaders: {},
+      debug: str => console.log('[WebSocket]', str),
+      reconnectDelay: 5000,
     });
-    const client = Stomp.over(socket);
+
     stompRef.current = client;
-    
-    client.connect({}, () => {
+
+    client.onConnect = () => {
       client.subscribe('/topic/output', response => {
         term.writeln(response.body);
         term.write('> ');
       });
-    });
+    };
+
+    client.activate();
 
     return () => {
       resizeObserver.disconnect();
       if (stompRef.current?.connected) {
-        stompRef.current.disconnect();
+        stompRef.current.deactivate();
       }
       term.dispose();
     };
