@@ -67,8 +67,10 @@ const TerminalComponent = () => {
     resizeObserver.observe(containerRef.current);
 
     // WebSocket setup
-    const socket = new WebSocket("wss://your-ngrok-subdomain.ngrok-free.app/ws");
-
+    const socket = new SockJS("https://your-ngrok-domain.ngrok-free.app/ws", null, {
+      transports: ['websocket', 'xhr-streaming', 'xhr-polling'],
+      withCredentials: true // 👈 Must be true if using cookies or secured origin
+    });
     const client = Stomp.over(socket);
     stompRef.current = client;
     
