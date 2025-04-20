@@ -63,7 +63,6 @@ export default defineConfig({
     },
     rollupOptions: {
       plugins: [rollupNodePolyFill()],
-      external: ['@stomp/stompjs']
     }
   }
 });
