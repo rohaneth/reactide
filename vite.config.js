@@ -62,8 +62,9 @@ export default defineConfig({
       transformMixedEsModules: true,
     },
     rollupOptions: {
-      plugins: [rollupNodePolyFill()]
+      plugins: [rollupNodePolyFill()],
+      external: ['@stomp/stompjs']
     }
   }
 });
- 
+
