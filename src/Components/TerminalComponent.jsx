@@ -64,7 +64,7 @@ const TerminalComponent = () => {
 
     // ✅ Native WebSocket over STOMP (no SockJS)
     const client = new Client({
-      brokerURL: 'wss://0fee-2409-4081-1e-1c9c-1897-c84e-a5c8-4be2.ngrok-free.app/ws',
+      brokerURL: 'wss://f142-137-97-131-26.ngrok-free.app/ws',
       connectHeaders: {},
       debug: str => console.log('[WebSocket]', str),
       reconnectDelay: 5000,
